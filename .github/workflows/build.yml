@@ -3,13 +3,15 @@ name: Build Flutter APK
 on:
   push:
     branches: [ "main", "master" ]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
     - name: Set up Java Development Kit (JDK)
       uses: actions/setup-java@v4
@@ -23,8 +25,25 @@ jobs:
         flutter-version: '3.22.x'
         channel: 'stable'
 
-    - name: Install Dependencies
-      run: flutter pub get
+    - name: Re-initialize Flutter Android Project
+      run: |
+        # Backup main.dart and pubspec.yaml
+        mkdir -p temp_backup
+        cp -r lib temp_backup/ 2>/dev/null || true
+        cp pubspec.yaml temp_backup/ 2>/dev/null || true
+        
+        # Clean current non-standard files
+        rm -rf android android.bak
+        
+        # Regenerate standard Flutter project structure
+        flutter create . --org com.lawyer.casediary --platforms android
+        
+        # Restore user code
+        cp -r temp_backup/lib/* lib/ 2>/dev/null || true
+        cp temp_backup/pubspec.yaml pubspec.yaml 2>/dev/null || true
+        
+        # Fetch fresh packages
+        flutter pub get
 
     - name: Build APK
       run: flutter build apk --release
