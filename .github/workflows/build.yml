@@ -27,16 +27,18 @@ jobs:
 
     - name: Re-initialize Flutter Android Project
       run: |
+        flutter config --no-analytics
+
         # Backup main.dart and pubspec.yaml
         mkdir -p temp_backup
         cp -r lib temp_backup/ 2>/dev/null || true
         cp pubspec.yaml temp_backup/ 2>/dev/null || true
         
-        # Clean current non-standard files
-        rm -rf android android.bak
+        # Clean existing android folder
+        rm -rf android
         
-        # Regenerate standard Flutter project structure
-        flutter create . --org com.lawyer.casediary --platforms android
+        # Regenerate Flutter project with correct package name
+        flutter create . --project-name biplob_case_diary --org com.lawyer.casediary --platforms android
         
         # Restore user code
         cp -r temp_backup/lib/* lib/ 2>/dev/null || true
